@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stellaride</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff6700' d='M12 2l2.4 6.9h6.1l-5 3.8 1.9 6.3L12 16.6 6.6 19l1.9-6.3-5-3.8h6.1z'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --lavender: #c8c2ff;
+      --lavender-deep: #a79ff0;
+      --royal: #2c2fff;
+      --royal-deep: #211fb4;
+      --orange: #ff6700;
+      --ink: #050316;
+      --white: #ffffff;
+      --muted: rgba(5, 3, 22, 0.65);
+      --ticket-cut: radial-gradient(circle at 0 50%, transparent 10px, var(--white) 11px) left/35px 100% repeat-y,
+        radial-gradient(circle at 100% 50%, transparent 10px, var(--white) 11px) right/35px 100% repeat-y,
+        linear-gradient(var(--white), var(--white));
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Sora', 'Space Grotesk', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(140deg, #f1edff 0%, #cabefb 35%, #f8f4ff 70%);
+      padding: clamp(18px, 5vw, 48px);
+      color: var(--ink);
+      display: flex;
+      justify-content: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body.has-custom-cursor {
+      cursor: none;
+    }
+
+    body.has-custom-cursor * {
+      cursor: none !important;
+    }
+
+    body::before,
+    body::after {
+      content: '';
+      position: absolute;
+      inset: -40px auto auto -80px;
+      width: 320px;
+      height: 120px;
+      background: var(--royal);
+      border-radius: 24px;
+      transform: rotate(-12deg);
+      box-shadow: 0 30px 60px -30px rgba(19, 16, 77, 0.55);
+      opacity: 0.25;
+    }
+
+    body::after {
+      inset: auto -60px 120px auto;
+      background: var(--orange);
+      transform: rotate(8deg);
+    }
+
+    .app {
+      width: min(980px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(18px, 3vw, 32px);
+      position: relative;
+      z-index: 2;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-end;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(2.4rem, 6vw, 3.8rem);
+      letter-spacing: 0.02em;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .tagline {
+      color: var(--royal);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .now-chip {
+      background: var(--white);
+      border: 2px solid var(--ink);
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+
+    .route-toggle {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .route-toggle button {
+      border: 0;
+      background: var(--white);
+      border-radius: 20px;
+      padding: 22px 24px;
+      text-align: left;
+      font-size: 1.05rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      border: 2px solid var(--ink);
+      box-shadow: 4px 6px 0 rgba(5, 3, 22, 0.25);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .route-toggle button.active {
+      background: var(--royal);
+      color: var(--white);
+      box-shadow: 6px 8px 0 rgba(5, 3, 22, 0.4);
+      transform: translateY(-3px);
+    }
+
+    .route-toggle span.subtitle {
+      font-size: 0.85rem;
+      color: inherit;
+      opacity: 0.85;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .loc-lines {
+      display: inline;
+    }
+
+    .loc-lines span {
+      display: inline;
+    }
+
+    .icon {
+      width: 1.2rem;
+      height: 1.2rem;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 28px;
+      padding: clamp(22px, 3vw, 34px);
+      border: 2px solid var(--ink);
+      box-shadow: 12px 14px 0 rgba(5, 3, 22, 0.12);
+    }
+
+    .press-bounce {
+      transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 160ms ease;
+      will-change: transform;
+    }
+
+    .press-bounce.is-pressed {
+      transform: scale(0.985) translateY(1px);
+    }
+
+    .cursor-ring,
+    .cursor-dot {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s ease;
+      opacity: 0;
+    }
+
+    .cursor-ring {
+      width: 44px;
+      height: 44px;
+      border: 2px solid rgba(5, 3, 22, 0.3);
+      border-radius: 999px;
+      backdrop-filter: blur(8px);
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 25px rgba(5, 3, 22, 0.2);
+      transition: transform 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+    }
+
+    .cursor-ring.is-hovering {
+      transform: translate(-50%, -50%) scale(1.15);
+      border-color: rgba(255, 103, 0, 0.65);
+    }
+
+    .cursor-ring.is-pressed {
+      transform: translate(-50%, -50%) scale(0.85);
+    }
+
+    .cursor-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--ink);
+      transition: opacity 0.1s ease;
+    }
+
+    .next-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: linear-gradient(140deg, #ff8a34 0%, #ff6700 60%, #f24800 100%);
+      color: var(--white);
+      align-items: flex-start;
+      text-align: left;
+      transition: text-align 200ms ease, align-items 200ms ease;
+    }
+
+    .next-card h2 {
+      margin: 0;
+      font-size: clamp(1.35rem, 3vw, 1.9rem);
+      letter-spacing: 0.02em;
+    }
+
+    .next-time {
+      font-size: clamp(3rem, 12vw, 4.8rem);
+      line-height: 1.05;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .next-meta {
+      display: none;
+    }
+
+    .countdown {
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      font-weight: 600;
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      align-self: stretch;
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .countdown .icon {
+      width: 1.8rem;
+      height: 1.8rem;
+    }
+
+    .countdown span {
+      flex: 1;
+      text-align: inherit;
+    }
+
+    body[data-route="goingHome"] .next-card {
+      align-items: flex-end;
+      text-align: right;
+    }
+
+    body[data-route="goingHome"] .next-card .countdown {
+      flex-direction: row-reverse;
+      justify-content: flex-end;
+      text-align: right;
+    }
+
+    @keyframes nextCardSwap {
+      0% {
+        opacity: 0.35;
+        transform: translateY(8px) scale(0.98);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .next-card.is-switching {
+      animation: nextCardSwap 420ms ease;
+    }
+
+    .list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+    }
+
+    .list-item {
+      border-radius: 20px;
+      padding: 18px 20px;
+      background: var(--ticket-cut);
+      border: 2px solid var(--ink);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .list-item::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(255, 103, 0, 0.12), rgba(33, 31, 180, 0.05));
+      pointer-events: none;
+    }
+
+    .list-item strong {
+      font-size: 1.45rem;
+      letter-spacing: 0.04em;
+      display: block;
+    }
+
+    .list-item small {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .notice {
+      font-size: 0.9rem;
+      color: var(--ink);
+      line-height: 1.6;
+      background: var(--orange);
+      border-color: #d45200;
+      color: #1f1300;
+      box-shadow: 8px 10px 0 rgba(255, 103, 0, 0.25);
+    }
+
+    @media (max-width: 540px) {
+      .next-meta {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .loc-lines {
+        display: inline-flex;
+        flex-direction: column;
+        line-height: 1.15;
+        align-items: flex-start;
+      }
+
+      .loc-lines span {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <h1>Stellaride</h1>
+        <p class="tagline">樂出遊 · 星接駁</p>
+      </div>
+      <div class="now-chip press-bounce" id="currentClock">
+        <svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+          <rect x="3.5" y="6" width="17" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8" />
+          <path d="M8 3.5v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M16 3.5v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M12 11v3.2l2.2 1.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+        <span id="clockText">Loading time…</span>
+      </div>
+    </header>
+
+    <section class="route-toggle" aria-label="Direction selector">
+      <button id="route-heading" class="active" data-route="headingOut">
+        <span>Heading Out / 想出門</span>
+        <span class="subtitle">
+          <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M12 2.25c-3.6 0-6.5 2.9-6.5 6.5 0 4.97 5.87 10.89 6.12 11.14.53.52 1.33.52 1.86 0 .25-.25 6.12-6.17 6.12-11.14 0-3.6-2.9-6.5-6.5-6.5zm0 3.75a2.75 2.75 0 110 5.5 2.75 2.75 0 010-5.5z" fill="currentColor"/>
+          </svg>
+          <span class="loc-lines">
+            <span>麗寶</span>
+            <span>之星</span>
+          </span>
+        </span>
+      </button>
+      <button id="route-home" data-route="goingHome">
+        <span>Going home / 想回家</span>
+        <span class="subtitle">
+          <svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M12 2.25c-3.6 0-6.5 2.9-6.5 6.5 0 4.97 5.87 10.89 6.12 11.14.53.52 1.33.52 1.86 0 .25-.25 6.12-6.17 6.12-11.14 0-3.6-2.9-6.5-6.5-6.5zm0 3.75a2.75 2.75 0 110 5.5 2.75 2.75 0 010-5.5z" fill="currentColor"/>
+          </svg>
+          凱薩大飯店
+        </span>
+      </button>
+    </section>
+
+    <section class="card next-card press-bounce" aria-live="polite">
+      <h2 id="routeLabel">Heading out · 麗寶之星</h2>
+      <div class="next-time" id="nextTime">--:--</div>
+      <div class="countdown">
+        <svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+          <path d="M10 2h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <circle cx="12" cy="13" r="7.5" stroke="currentColor" stroke-width="1.8" />
+          <path d="M12 9.5V13l3 1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+        <span id="countdownValue">Updating…</span>
+      </div>
+      <p id="arrivalTag" style="margin:0;font-weight:600;"></p>
+    </section>
+
+    <section class="card press-bounce">
+      <h3 style="margin-top: 0; font-size: 1.2rem; color: var(--ink);">Upcoming departures / 其他班次</h3>
+      <div class="list" id="upcomingList"></div>
+    </section>
+
+    <section class="notice card press-bounce">
+      <strong style="display: block; font-size: 1.1rem; margin-bottom: 6px;">Heads-up / 提醒</strong>
+      <p>此頁面為非官方資訊，若有班次調整請以大樓管理處公布為準。系統會依裝置時間計算下一班車與倒數，若在離線或跨時區使用，請先確認手機時間正確。</p>
+    </section>
+    <footer style="text-align:center;font-size:0.85rem;color:rgba(5,3,22,0.6);">
+      © 2026 Stellaride · All rights reserved.
+    </footer>
+  </main>
+  <div class="cursor-ring"></div>
+  <div class="cursor-dot"></div>
+
+  <script>
+    const schedules = {
+      headingOut: {
+        label: 'Heading out · 麗寶之星',
+        times: ['06:30','06:50','07:20','07:50','08:20','09:00','10:00','10:30','11:00','11:30','13:00','13:30','14:00','14:30','15:00','16:00','16:30','17:00','17:55','18:30','19:00','19:30','20:00','20:30','21:00','21:30','22:00','22:30']
+      },
+      goingHome: {
+        label: 'Going home · 凱薩大飯店',
+        times: ['06:37','06:59','07:29','07:59','08:29','09:12','10:09','10:39','11:12','11:39','13:09','13:39','14:09','14:39','15:12','16:09','16:39','17:09','18:07','18:39','19:09','19:39','20:09','20:39','21:09','21:39','22:09','22:37']
+      }
+    };
+
+    const routeButtons = document.querySelectorAll('.route-toggle button');
+    const routeLabel = document.getElementById('routeLabel');
+    const nextTimeEl = document.getElementById('nextTime');
+    const countdownValue = document.getElementById('countdownValue');
+    const arrivalTag = document.getElementById('arrivalTag');
+    const upcomingList = document.getElementById('upcomingList');
+    const clockText = document.getElementById('clockText');
+    const nextCard = document.querySelector('.next-card');
+    const cursorRing = document.querySelector('.cursor-ring');
+    const cursorDot = document.querySelector('.cursor-dot');
+
+    let activeRoute = 'headingOut';
+
+    const weekdayMap = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+
+    function updateClock() {
+      const now = new Date();
+      const month = now.getMonth() + 1;
+      const day = now.getDate();
+      const weekday = weekdayMap[now.getDay()];
+      const time = now.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: true });
+      clockText.textContent = `${month}月${day}日 ${weekday} ${time}`;
+    }
+
+    function buildDateFromTime(hhmm, dayOffset = 0) {
+      const [h, m] = hhmm.split(':').map(Number);
+      const date = new Date();
+      date.setHours(h, m, 0, 0);
+      if (dayOffset) {
+        date.setDate(date.getDate() + dayOffset);
+      }
+      return date;
+    }
+
+    function computeUpcoming(routeKey) {
+      const now = new Date();
+      const schedule = schedules[routeKey];
+      const upcoming = [];
+
+      schedule.times.forEach(timeStr => {
+        const candidate = buildDateFromTime(timeStr);
+        if (candidate <= now) {
+          const tomorrow = buildDateFromTime(timeStr, 1);
+          upcoming.push({ raw: timeStr, when: tomorrow, isTomorrow: true });
+        } else {
+          upcoming.push({ raw: timeStr, when: candidate, isTomorrow: false });
+        }
+      });
+
+      upcoming.sort((a, b) => a.when - b.when);
+      return upcoming;
+    }
+
+    function describeDiff(targetDate) {
+      const now = new Date();
+      const diffMinutes = Math.round((targetDate - now) / 60000);
+      if (diffMinutes <= 1) return '不到 1 分鐘';
+      if (diffMinutes < 60) return `${diffMinutes} 分鐘`;
+      const hours = Math.floor(diffMinutes / 60);
+      const minutes = diffMinutes % 60;
+      return minutes ? `${hours} 小時 ${minutes} 分` : `${hours} 小時`;
+    }
+
+    function triggerCardAnimation() {
+      if (!nextCard) return;
+      nextCard.classList.remove('is-switching');
+      void nextCard.offsetWidth;
+      nextCard.classList.add('is-switching');
+    }
+
+    function updateUI({ animate = false } = {}) {
+      document.body.dataset.route = activeRoute;
+      if (animate) {
+        triggerCardAnimation();
+      }
+      const route = schedules[activeRoute];
+      routeLabel.textContent = route.label;
+      const upcoming = computeUpcoming(activeRoute);
+      const next = upcoming[0];
+
+      if (next) {
+        nextTimeEl.textContent = next.raw;
+        countdownValue.textContent = describeDiff(next.when);
+        arrivalTag.textContent = next.isTomorrow ? '本日末班車已過' : '';
+      } else {
+        nextTimeEl.textContent = '--:--';
+        countdownValue.textContent = '暫無班次';
+        arrivalTag.textContent = '請確認時刻表';
+      }
+
+      upcomingList.innerHTML = '';
+      const upcomingLater = upcoming.slice(1, 5);
+      upcomingLater.forEach(item => {
+        const li = document.createElement('article');
+        li.className = 'list-item press-bounce';
+        li.innerHTML = `
+          <strong>${item.raw}</strong>
+          <small>${item.isTomorrow ? '明天' : '今天'} · ${describeDiff(item.when)}後</small>
+        `;
+        upcomingList.appendChild(li);
+      });
+
+      if (!upcomingLater.length && next) {
+        const fallback = document.createElement('article');
+        fallback.className = 'list-item press-bounce';
+        fallback.innerHTML = `
+          <strong>${next.raw}</strong>
+          <small>${next.isTomorrow ? '明天' : '今天'} · ${describeDiff(next.when)}後</small>
+        `;
+        upcomingList.appendChild(fallback);
+      }
+    }
+
+    function attachBounceHandlers(el) {
+      if (!el || el.dataset.pressBound === 'true') return;
+      el.dataset.pressBound = 'true';
+      const release = () => el.classList.remove('is-pressed');
+      el.addEventListener('pointerdown', () => {
+        el.classList.add('is-pressed');
+      });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach(evt => {
+        el.addEventListener(evt, release);
+      });
+    }
+
+    document.querySelectorAll('.press-bounce').forEach(attachBounceHandlers);
+
+    const prefersCustomCursor = window.matchMedia('(pointer: fine)').matches;
+
+    if (prefersCustomCursor && cursorRing && cursorDot) {
+      document.body.classList.add('has-custom-cursor');
+
+      const updateCursor = (event) => {
+        cursorDot.style.opacity = '1';
+        cursorRing.style.opacity = '1';
+        cursorDot.style.left = `${event.clientX}px`;
+        cursorDot.style.top = `${event.clientY}px`;
+        cursorRing.style.left = `${event.clientX}px`;
+        cursorRing.style.top = `${event.clientY}px`;
+
+        const interactive = event.target.closest('button, .press-bounce, a');
+        cursorRing.classList.toggle('is-hovering', Boolean(interactive));
+      };
+
+      window.addEventListener('pointermove', updateCursor);
+
+      window.addEventListener('pointerdown', () => {
+        cursorRing.classList.add('is-pressed');
+      });
+
+      window.addEventListener('pointerup', () => {
+        cursorRing.classList.remove('is-pressed');
+      });
+
+      window.addEventListener('pointerleave', () => {
+        cursorDot.style.opacity = '0';
+        cursorRing.style.opacity = '0';
+      });
+
+      window.addEventListener('pointerenter', (event) => {
+        cursorDot.style.opacity = '1';
+        cursorRing.style.opacity = '1';
+        updateCursor(event);
+      });
+    } else {
+      cursorDot?.remove();
+      cursorRing?.remove();
+    }
+
+    routeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (activeRoute === btn.dataset.route) return;
+        activeRoute = btn.dataset.route;
+        routeButtons.forEach(b => b.classList.toggle('active', b === btn));
+        updateUI({ animate: true });
+      });
+    });
+
+    updateClock();
+    updateUI();
+    setInterval(updateClock, 1000 * 30);
+    setInterval(updateUI, 1000 * 30);
+  </script>
+</body>
+</html>
