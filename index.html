@@ -512,6 +512,7 @@
       <h4 id="fridayTitle">今天是星期五嗎？</h4>
       <p id="fridayMessage">稍等一下…</p>
       <button type="button" id="fridayClose">知道了</button>
+      <p style="margin:14px 0 0;font-size:0.7rem;"><a href="https://isitfridayyet.net" target="_blank" rel="noopener" style="color:var(--muted);text-decoration:underline;">isitfridayyet.net</a></p>
     </div>
   </div>
   <div class="cursor-ring"></div>
@@ -693,7 +694,10 @@
 
     if (fridayClose) {
       fridayClose.addEventListener('click', hideFridayOverlay);
-      fridayOverlay.addEventListener('click', (event) => {
+      fridayOverlay.addEventListener('mousedown', (event) => {
+        if (event.target === fridayOverlay) hideFridayOverlay();
+      });
+      fridayOverlay.addEventListener('touchstart', (event) => {
         if (event.target === fridayOverlay) hideFridayOverlay();
       });
     }
