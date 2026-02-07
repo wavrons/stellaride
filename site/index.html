@@ -696,6 +696,17 @@
       fridayClose.addEventListener('click', hideFridayOverlay);
     }
 
+    if (fridayOverlay) {
+      ['click', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'pointerdown', 'pointerup'].forEach(evt => {
+        fridayOverlay.addEventListener(evt, (e) => {
+          if (e.target !== fridayClose) {
+            e.stopPropagation();
+            e.preventDefault();
+          }
+        });
+      });
+    }
+
     const tapTimestamps = [];
     if (dateCard) {
       dateCard.addEventListener('click', () => {
