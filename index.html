@@ -694,12 +694,6 @@
 
     if (fridayClose) {
       fridayClose.addEventListener('click', hideFridayOverlay);
-      fridayOverlay.addEventListener('mousedown', (event) => {
-        if (event.target === fridayOverlay) hideFridayOverlay();
-      });
-      fridayOverlay.addEventListener('touchstart', (event) => {
-        if (event.target === fridayOverlay) hideFridayOverlay();
-      });
     }
 
     const tapTimestamps = [];
